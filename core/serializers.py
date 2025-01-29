@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import Customer, StaffUser,Product
+from .models import *
 from django.contrib.auth.hashers import make_password, check_password
+from rest_framework import serializers
+from .models import Complaint
 
 class CustomerRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -75,3 +77,12 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['name', 'description', 'price', 'stock']
+
+
+
+
+class ComplaintSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Complaint
+        fields = ['id', 'customer', 'subject', 'message', 'status', 'response', 'created_at']
+        read_only_fields = ['id', 'customer', 'status', 'response', 'created_at']

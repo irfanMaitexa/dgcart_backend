@@ -22,7 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/register/', CustomerRegistrationAPIView.as_view(), name='customer-register'),
     path('customer/<str:phone>/', CustomerDetailView.as_view(), name='customer-detail'),
-
     path('api/login/', CustomerLoginAPIView.as_view(), name='customer-login'),
     path('api/staff/login/', StaffLoginAPIView.as_view(), name='staff-login'),
     path('api/products/', ProductListAPIView.as_view(), name='product-list'),
@@ -31,4 +30,6 @@ urlpatterns = [
     path('api/products/<int:pk>/update/', ProductUpdateAPIView.as_view(), name='product-update'),
     path('api/products/<int:pk>/delete/', ProductDeleteAPIView.as_view(), name='product-delete'),
     path('api/products/<int:pk>/update-stock/', ProductStockUpdateAPIView.as_view(), name='product-stock-update'),
+    path('api/complaints/submit/', SubmitComplaintAPI.as_view(), name='submit_complaint_api'),
+    path('api/complaints/', ComplaintListAPI.as_view(), name='complaint_list_api'),
 ]

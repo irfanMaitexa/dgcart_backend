@@ -39,3 +39,17 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Complaint(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='complaints')
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    response = models.TextField(blank=True, null=True)  # Admin's response
+    status = models.CharField(max_length=50, choices=[('Pending', 'Pending'), ('Resolved', 'Resolved')], default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Complaint by {self.customer.name} - {self.subject}"
+    
+

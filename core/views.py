@@ -3,12 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Customer
-from .serializers import (
-    CustomerRegistrationSerializer, 
-    CustomerLoginSerializer, 
-    StaffLoginSerializer,
-    CustomerSerializer
-)
+
+from .serializers import *
 
 class CustomerRegistrationAPIView(APIView):
     def post(self, request):
@@ -125,3 +121,44 @@ class ProductStockUpdateAPIView(APIView):
             return Response({"message": "Stock updated successfully", "stock": product.stock}, status=status.HTTP_200_OK)
         else:
             return Response({"error": "Invalid stock value."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SubmitComplaintAPI(APIView):
+    def post(self, request):
+        # Extract phone number from the request
+        phone = request.data.get('phone')
+        if not phone:
+            return Response({"error": "Phone number is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Find the customer by phone number
+            customer = Customer.objects.get(phone=phone)
+        except Customer.DoesNotExist:
+            return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create a complaint for the customer
+        serializer = ComplaintSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(customer=customer)  # Associate the complaint with the customer
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ComplaintListAPI(APIView):
+    def get(self, request):
+        # Extract phone number from query parameters
+        phone = request.query_params.get('phone')
+        if not phone:
+            return Response({"error": "Phone number is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Find the customer by phone number
+            customer = Customer.objects.get(phone=phone)
+        except Customer.DoesNotExist:
+            return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Fetch all complaints for the customer
+        complaints = Complaint.objects.filter(customer=customer)
+        serializer = ComplaintSerializer(complaints, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
