@@ -44,8 +44,7 @@ from .serializers import ProductSerializer, ProductCreateSerializer, ProductUpda
 
 # Create Product
 class ProductCreateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
+    # No permission_classes means no authentication is required
     def post(self, request):
         serializer = ProductCreateSerializer(data=request.data)
         if serializer.is_valid():
@@ -55,7 +54,7 @@ class ProductCreateAPIView(APIView):
 
 # Get List of Products
 class ProductListAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+   
 
     def get(self, request):
         products = Product.objects.all()
@@ -64,7 +63,7 @@ class ProductListAPIView(APIView):
 
 # Get Single Product
 class ProductDetailAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    
 
     def get(self, request, pk):
         try:
@@ -77,7 +76,7 @@ class ProductDetailAPIView(APIView):
 
 # Update Product
 class ProductUpdateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+   
 
     def patch(self, request, pk):
         try:
@@ -93,7 +92,7 @@ class ProductUpdateAPIView(APIView):
 
 # Delete Product
 class ProductDeleteAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    
 
     def delete(self, request, pk):
         try:
@@ -106,7 +105,7 @@ class ProductDeleteAPIView(APIView):
 
 # Update Stock of Product
 class ProductStockUpdateAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    
 
     def patch(self, request, pk):
         try:
@@ -161,4 +160,63 @@ class ComplaintListAPI(APIView):
         complaints = Complaint.objects.filter(customer=customer)
         serializer = ComplaintSerializer(complaints, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class AddToCartView(APIView):
+    def post(self, request):
+        customer_id = request.data.get('customer_id')
+        product_id = request.data.get('product_id')
+        quantity = request.data.get('quantity', 1)
+
+        try:
+            customer = Customer.objects.get(id=customer_id)
+            product = Product.objects.get(id=product_id)
+        except (Customer.DoesNotExist, Product.DoesNotExist):
+            return Response({"error": "Customer or Product not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if the product is already in the cart
+        cart_item, created = Cart.objects.get_or_create(customer=customer, product=product)
+        if not created:
+            cart_item.quantity += quantity
+            cart_item.save()
+
+        serializer = CartSerializer(cart_item)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class UpdateCartView(APIView):
+    def put(self, request, cart_id):
+        quantity = request.data.get('quantity')
+
+        try:
+            cart_item = Cart.objects.get(id=cart_id)
+        except Cart.DoesNotExist:
+            return Response({"error": "Cart item not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        cart_item.quantity = quantity
+        cart_item.save()
+
+        serializer = CartSerializer(cart_item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class RemoveFromCartView(APIView):
+    def delete(self, request, cart_id):
+        try:
+            cart_item = Cart.objects.get(id=cart_id)
+        except Cart.DoesNotExist:
+            return Response({"error": "Cart item not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        cart_item.delete()
+        return Response({"message": "Item removed from cart"}, status=status.HTTP_204_NO_CONTENT)
+    
+class ViewCartView(APIView):
+    def get(self, request, customer_id):
+        try:
+            customer = Customer.objects.get(id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        cart_items = Cart.objects.filter(customer=customer)
+        serializer = CartSerializer(cart_items, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 

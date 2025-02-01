@@ -35,6 +35,7 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)  # Stock field
+    image = models.ImageField(upload_to='products/', blank=True, null=True)  # Image field
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -51,5 +52,17 @@ class Complaint(models.Model):
 
     def __str__(self):
         return f"Complaint by {self.customer.name} - {self.subject}"
-    
+
+
+class Cart(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='carts')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='carts')
+    quantity = models.PositiveIntegerField(default=1)  # Quantity of the product in the cart
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer.name}'s Cart - {self.product.name} (Qty: {self.quantity})"
+
+    def total_price(self):
+        return self.product.price * self.quantity
 

@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from core.views import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,4 +34,11 @@ urlpatterns = [
     path('api/products/<int:pk>/update-stock/', ProductStockUpdateAPIView.as_view(), name='product-stock-update'),
     path('api/complaints/submit/', SubmitComplaintAPI.as_view(), name='submit_complaint_api'),
     path('api/complaints/', ComplaintListAPI.as_view(), name='complaint_list_api'),
+    path('add-to-cart/', AddToCartView.as_view(), name='add-to-cart'),
+    path('update-cart/<int:cart_id>/', UpdateCartView.as_view(), name='update-cart'),
+    path('remove-from-cart/<int:cart_id>/', RemoveFromCartView.as_view(), name='remove-from-cart'),
+    path('view-cart/<int:customer_id>/', ViewCartView.as_view(), name='view-cart'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

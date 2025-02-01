@@ -61,24 +61,21 @@ class StaffLoginSerializer(serializers.Serializer):
 
 
 
-
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'stock', 'created_at']
+        fields = ['id', 'name', 'description', 'price', 'stock', 'image', 'created_at']
         read_only_fields = ['created_at']
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['name', 'description', 'price', 'stock']
+        fields = ['name', 'description', 'price', 'stock', 'image']
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['name', 'description', 'price', 'stock']
-
-
+        fields = ['name', 'description', 'price', 'stock', 'image']
 
 
 class ComplaintSerializer(serializers.ModelSerializer):
@@ -86,3 +83,16 @@ class ComplaintSerializer(serializers.ModelSerializer):
         model = Complaint
         fields = ['id', 'customer', 'subject', 'message', 'status', 'response', 'created_at']
         read_only_fields = ['id', 'customer', 'status', 'response', 'created_at']
+
+        
+class CartSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
+    total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Cart
+        fields = ['id', 'customer', 'product', 'product_name', 'product_price', 'quantity', 'total_price', 'created_at']
+
+    def get_total_price(self, obj):
+        return obj.total_price()
